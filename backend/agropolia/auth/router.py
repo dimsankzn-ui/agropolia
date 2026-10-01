@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from agropolia.config import Settings, get_settings
 from agropolia.db import get_db
 from agropolia.errors import DomainError
-from agropolia.integrations.sms import DevelopmentOtpProvider
+from agropolia.integrations.sms import DevelopmentOtpProvider, SmsOtpProvider
 
 from .dependencies import AuthContext, get_auth_context
 from .otp import OtpService, RedisAttemptLimiter, RedisOtpStore
@@ -35,11 +35,12 @@ def _auth_service(settings: Settings = Depends(_settings), tokens: TokenService 
 
 def _otp_service(request: Request, settings: Settings = Depends(_settings)) -> OtpService:
     redis_client: Redis = request.app.state.redis
+    provider = DevelopmentOtpProvider() if settings.env in {"development", "test"} else SmsOtpProvider()
     return OtpService(
         settings=settings,
         store=RedisOtpStore(redis_client),
         limiter=RedisAttemptLimiter(redis_client, settings.otp_attempt_limit, settings.otp_attempt_window_seconds),
-        provider=DevelopmentOtpProvider(),
+        provider=provider,
     )
 
 
@@ -80,7 +81,7 @@ def _client_tokens(response: Response, tokens: TokenPair, platform: str | None, 
 @router.post("/otp/request", response_model=OtpRequestResult)
 async def request_otp(payload: OtpRequest, otp: OtpService = Depends(_otp_service), settings: Settings = Depends(_settings)) -> OtpRequestResult:
     code = await otp.request(payload.phone, payload.device_id, payload.purpose)
-    return OtpRequestResult(expires_in=settings.otp_ttl_seconds, dev_code=code if settings.env == "development" else None)
+    return OtpRequestResult(expires_in=settings.otp_ttl_seconds, dev_code=code if settings.env in {"development", "test"} else None)
 
 
 @router.post("/otp/verify", response_model=OtpVerifyResult)
