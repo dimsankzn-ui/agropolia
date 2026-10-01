@@ -88,7 +88,6 @@ class AuthService:
                 device_context=device_id,
                 ip_address=ip_address,
             )
-            # Flush principal rows before dependent membership/consent/session FKs.
             db.add_all([user, organization])
             await db.flush()
             db.add_all([membership, consent])
@@ -131,9 +130,9 @@ class AuthService:
         return pair
 
     async def logout(self, db: AsyncSession, session_id: UUID, user_id: UUID, ip_address: str | None) -> None:
-        async with db.begin():
-            session = await db.get(Session, session_id, with_for_update=True)
-            if session and session.user_id == user_id and session.revoked_at is None:
-                session.revoked_at = datetime.now(timezone.utc)
-                session.version += 1
-                db.add(SecurityAuditLog(actor_id=user_id, action="auth.logout", target_type="session", target_id=str(session.id), ip_address=ip_address, details={}))
+        session = await db.get(Session, session_id, with_for_update=True)
+        if session and session.user_id == user_id and session.revoked_at is None:
+            session.revoked_at = datetime.now(timezone.utc)
+            session.version += 1
+            db.add(SecurityAuditLog(actor_id=user_id, action="auth.logout", target_type="session", target_id=str(session.id), ip_address=ip_address, details={}))
+        await db.commit()
