@@ -73,9 +73,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: cp .env.example .env
-      - run: docker compose up -d --build --wait postgres redis nats backend-api client
-      - run: docker compose run --rm backend-api alembic upgrade head
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -84,6 +81,9 @@ jobs:
         run: |
           npm install
           npx playwright install --with-deps chromium
+      - run: cp .env.example .env
+      - run: docker compose up -d --build --wait postgres redis nats backend-api client
+      - run: docker compose run --rm backend-api alembic upgrade head
       - name: Wait for web and API
         run: |
           for i in {1..60}; do curl -fsS http://127.0.0.1:8000/health/live && curl -fsS http://127.0.0.1:5173 >/dev/null && exit 0; sleep 2; done
