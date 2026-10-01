@@ -88,7 +88,11 @@ class AuthService:
                 device_context=device_id,
                 ip_address=ip_address,
             )
-            db.add_all([user, organization, membership, consent])
+            # Flush principal rows before dependent membership/consent/session FKs.
+            db.add_all([user, organization])
+            await db.flush()
+            db.add_all([membership, consent])
+            await db.flush()
             session, tokens = await self.issue_session(db, user.id, device_id)
             db.add(SecurityAuditLog(actor_id=user.id, action="auth.register", target_type="organization", target_id=str(organization.id), ip_address=ip_address, details={"session_id": str(session.id)}))
         return tokens
