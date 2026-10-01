@@ -22,7 +22,7 @@ jobs:
   backend-integration:
     runs-on: ubuntu-latest
     env:
-      AGROPOLIA_ENV: development
+      AGROPOLIA_ENV: test
       AGROPOLIA_DATABASE_URL: postgresql+asyncpg://agropolia:agropolia@localhost:5432/agropolia
       AGROPOLIA_REDIS_URL: redis://localhost:6379/0
       AGROPOLIA_NATS_URL: nats://localhost:4222
