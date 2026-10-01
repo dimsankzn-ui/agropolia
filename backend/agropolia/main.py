@@ -10,7 +10,7 @@ from sqlalchemy import text
 
 from agropolia.auth.router import router as auth_router
 from agropolia.config import get_settings
-from agropolia.db import SessionFactory
+from agropolia.db import SessionFactory, engine
 from agropolia.errors import install_error_handlers
 from agropolia.logging import configure_logging
 from agropolia.middleware import RequestContextMiddleware
@@ -34,6 +34,7 @@ async def lifespan(app: FastAPI):
     await app.state.redis.aclose()
     if app.state.nats is not None:
         await app.state.nats.drain()
+    await engine.dispose()
 
 
 def create_app() -> FastAPI:
