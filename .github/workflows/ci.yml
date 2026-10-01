@@ -36,6 +36,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
+      - run: cp .env.example .env
       - run: docker compose up -d --wait postgres redis nats
       - run: pip install -e './backend[test]'
       - name: Migrate clean database
