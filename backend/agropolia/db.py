@@ -5,6 +5,7 @@ from collections.abc import AsyncIterator
 from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 
 from .config import get_settings
 
@@ -22,7 +23,10 @@ class Base(AsyncAttrs, DeclarativeBase):
 
 
 settings = get_settings()
-engine = create_async_engine(settings.database_url, pool_pre_ping=True)
+engine_options = {"pool_pre_ping": True}
+if settings.env == "test":
+    engine_options["poolclass"] = NullPool
+engine = create_async_engine(settings.database_url, **engine_options)
 SessionFactory = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
