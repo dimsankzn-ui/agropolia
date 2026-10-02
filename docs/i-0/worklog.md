@@ -171,6 +171,7 @@
 
 ### Результат
 - CI конфигурация добавлена: unit, clean migration + integration/security against Compose services, frontend typecheck/test/build/audit, Docker build.
+- Финальный GitHub Actions run #20 завершён успешно: `backend-unit`, `backend-integration`, `frontend`, `docker-build`, `e2e-i0` — **success**.
 
 ## Шаг 16 — финальный e2e I-0
 
@@ -182,7 +183,8 @@
 ### Результат
 - Playwright-сценарий покрывает start -> register -> OTP -> organization -> dashboard -> logout -> login -> dashboard.
 - Outbox/inbox redelivery покрыт отдельным integration test.
-- Локально browser/integration suite не может быть исполнен из-за отсутствия Docker runtime и npm/network dependencies; CI настроен как фактическая среда проверки.
+- Финальный GitHub Actions run #20 подтвердил полный browser E2E и infrastructure integration suite — **success**.
+- Локальная автономная среда не имела Docker/native mobile runtime; фактическая Docker/browser проверка выполнена GitHub Actions.
 
 ## Итог для ревью
 
@@ -235,7 +237,7 @@
 - `python -m compileall -q agropolia alembic ../tests` — успешно;
 - `PYTHONPATH=. pytest -q ../tests/unit` — **10 passed**.
 
-В CI настроены и должны быть подтверждены после push:
+GitHub Actions run #20 — **success**, подтверждены:
 - clean Alembic migration;
 - auth integration flow;
 - refresh reuse/session revocation;
@@ -247,6 +249,13 @@
 - npm audit;
 - Docker builds;
 - Playwright full I-0 browser flow.
+
+Jobs:
+- `backend-unit` — success;
+- `backend-integration` — success;
+- `frontend` — success;
+- `docker-build` — success;
+- `e2e-i0` — success.
 
 ### Команды для проверки
 ```bash
@@ -281,3 +290,8 @@ docker compose run --rm backend-api alembic upgrade head
 8. Capacitor spike остаётся формальным blocking item до проверки на целевых устройствах.
 9. До production нужен юридически утверждённый текст consent и production secrets/KMS/Vault configuration.
 10. После первого успешного `npm install` следует закоммитить lockfile и заменить CI `npm install` на `npm ci`.
+
+
+## Финальный статус автоматической проверки
+
+На последнем полном прогоне до обновления документации GitHub Actions run #20 завершился со статусом **success** по всем пяти jobs. После документальных изменений README/worklog CI запускается повторно; изменения не затрагивают application code.
